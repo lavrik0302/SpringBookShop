@@ -1,10 +1,11 @@
 package com.intexsoft.controller.dao;
 
 
-import com.intexsoft.controller.ConnectionPool;
-import com.intexsoft.controller.findRequest.FindCartHasBookRequest;
-import com.intexsoft.controller.updateRequest.UpdateCartHasBookRequest;
+import com.intexsoft.controller.connectionPool.ConnectionPool;
+import com.intexsoft.controller.dao.request.findRequest.FindCartHasBookRequest;
+import com.intexsoft.controller.dao.request.updateRequest.UpdateCartHasBookRequest;
 import com.intexsoft.model.CartHasBook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -14,9 +15,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Component
 public class CartHasBookDAO {
     Connection connection;
+    @Autowired
+    ConnectionPool connectionPool;
 
     public CartHasBook createRow(UUID cartId, UUID bookId, int bookCount) {
         PreparedStatement preparedStatement;
@@ -25,14 +29,14 @@ public class CartHasBookDAO {
             cartHasBook.setCartId(cartId);
             cartHasBook.setBookId(bookId);
             cartHasBook.setBookCount(bookCount);
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into cart_has_book values (?, ?, ?)");
             preparedStatement.setObject(1, cartId);
             preparedStatement.setObject(2, bookId);
             preparedStatement.setObject(3, bookCount);
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -43,14 +47,14 @@ public class CartHasBookDAO {
     public CartHasBook createCartHasBook(CartHasBook cartHasBook) {
         PreparedStatement preparedStatement;
         try {
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into cart_has_book values (?, ?, ?)");
             preparedStatement.setObject(1, cartHasBook.getCartId());
             preparedStatement.setObject(2, cartHasBook.getBookId());
             preparedStatement.setObject(3, cartHasBook.getBookCount());
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -64,11 +68,11 @@ public class CartHasBookDAO {
         ResultSet rs = null;
         try {
             String query = "select * from cart_has_book";
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(query);
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 CartHasBook cartHasBook = new CartHasBook();
                 cartHasBook.setCartId(rs.getObject("cart_id", UUID.class));
@@ -91,11 +95,11 @@ public class CartHasBookDAO {
             sb.append("select * from cart_has_book where ");
             sb.append(toSQLStringStatement(findCartHasBookRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 CartHasBook cartHasBook = new CartHasBook();
                 cartHasBook.setCartId(rs.getObject("cart_id", UUID.class));
@@ -125,11 +129,11 @@ public class CartHasBookDAO {
             sb.append("where ");
             sb.append(toSQLStringStatement(findCartHasBookRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data updated");
         } catch (Exception e) {
             System.out.println(e);
@@ -151,11 +155,11 @@ public class CartHasBookDAO {
             sb.append("delete from cart_has_book where ");
             sb.append(toSQLStringStatement(findCartHasBookRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data deleted");
         } catch (Exception e) {
             System.out.println(e);

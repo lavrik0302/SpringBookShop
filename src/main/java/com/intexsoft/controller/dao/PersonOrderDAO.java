@@ -1,12 +1,14 @@
 package com.intexsoft.controller.dao;
 
 
-import com.intexsoft.controller.ConnectionPool;
-import com.intexsoft.controller.findRequest.FindPersonOrderRequest;
-import com.intexsoft.controller.updateRequest.UpdatePersonOrderRequest;
+import com.intexsoft.controller.connectionPool.ConnectionPool;
+
+import com.intexsoft.controller.dao.request.findRequest.FindPersonOrderRequest;
+import com.intexsoft.controller.dao.request.updateRequest.UpdatePersonOrderRequest;
 import com.intexsoft.model.Book;
 import com.intexsoft.model.PersonOrder;
 import com.intexsoft.model.PersonOrderHasBook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -16,9 +18,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Component
 public class PersonOrderDAO {
     Connection connection;
+    @Autowired
+    ConnectionPool connectionPool;
 
     public PersonOrder createRow(UUID personId, String adress, int statusId) {
         PreparedStatement preparedStatement;
@@ -29,7 +34,7 @@ public class PersonOrderDAO {
             personOrder.setPersonId(personId);
             personOrder.setAdress(adress);
             personOrder.setStatusId(statusId);
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into person_order values(?, ?, ?, ?)");
             preparedStatement.setObject(1, uuid);
@@ -37,7 +42,7 @@ public class PersonOrderDAO {
             preparedStatement.setString(3, adress);
             preparedStatement.setInt(4, statusId);
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -48,7 +53,7 @@ public class PersonOrderDAO {
     public PersonOrder createPersonOrder(PersonOrder personOrder) {
         PreparedStatement preparedStatement;
         try {
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into person_order values(?, ?, ?, ?)");
             preparedStatement.setObject(1, personOrder.getOrderId());
@@ -56,7 +61,7 @@ public class PersonOrderDAO {
             preparedStatement.setString(3, personOrder.getAdress());
             preparedStatement.setInt(4, personOrder.getStatusId());
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -70,11 +75,11 @@ public class PersonOrderDAO {
         ResultSet rs = null;
         try {
             String query = "select * from person_order";
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(query);
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 PersonOrder personOrder = new PersonOrder();
                 personOrder.setOrderId(rs.getObject("order_id", UUID.class));
@@ -99,11 +104,11 @@ public class PersonOrderDAO {
             sb.append("select * from person_order where ");
             sb.append(toSQLStringStatement(findPersonOrderRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 personOrder.setOrderId(rs.getObject("order_id", UUID.class));
                 personOrder.setPersonId(rs.getObject("person_id", UUID.class));
@@ -143,12 +148,11 @@ public class PersonOrderDAO {
             sb.delete(sb.length() - 4, sb.length());
             sb.append(";");
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(sb.toString());
-            Thread.sleep(5000);
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 personOrder.setOrderId(rs.getObject("order_id", UUID.class));
                 personOrder.setPersonId(rs.getObject("person_id", UUID.class));
@@ -192,11 +196,11 @@ public class PersonOrderDAO {
             sb.append("where ");
             sb.append(toSQLStringStatement(findPersonOrderRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data updated");
         } catch (Exception e) {
             System.out.println(e);
@@ -204,6 +208,7 @@ public class PersonOrderDAO {
     }
 
     public PersonOrder updatePersonOrder(PersonOrder personOrder) {
+
         FindPersonOrderRequest findPersonOrderRequest = new FindPersonOrderRequest().setOrderId(personOrder.getOrderId());
         UpdatePersonOrderRequest updatePersonOrderRequest = new UpdatePersonOrderRequest();
         updatePersonOrderRequest.setOrderId(personOrder.getOrderId()).setPersonId(personOrder.getPersonId()).setAdress(personOrder.getAdress()).setStatusId(personOrder.getStatusId());
@@ -218,11 +223,11 @@ public class PersonOrderDAO {
             sb.append("delete from person_order where ");
             sb.append(toSQLStringStatement(findPersonOrderRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data deleted");
         } catch (Exception e) {
             System.out.println(e);

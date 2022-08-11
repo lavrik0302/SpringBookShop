@@ -1,11 +1,12 @@
 package com.intexsoft.controller.dao;
 
 
-import com.intexsoft.controller.ConnectionPool;
-import com.intexsoft.controller.findRequest.FindCartRequest;
-import com.intexsoft.controller.updateRequest.UpdateCartRequest;
+import com.intexsoft.controller.connectionPool.ConnectionPool;
+import com.intexsoft.controller.dao.request.findRequest.FindCartRequest;
+import com.intexsoft.controller.dao.request.updateRequest.UpdateCartRequest;
 import com.intexsoft.model.Book;
 import com.intexsoft.model.Cart;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -15,9 +16,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Component
 public class CartDAO {
     Connection connection;
+    @Autowired
+    ConnectionPool connectionPool;
 
     public Cart createRow(UUID personId, String cartname) {
         PreparedStatement preparedStatement;
@@ -27,14 +31,14 @@ public class CartDAO {
             cart.setCartId(uuid);
             cart.setPersonId(personId);
             cart.setCartname(cartname);
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into cart values (?, ?, ?)");
             preparedStatement.setObject(1, uuid);
             preparedStatement.setObject(2, personId);
             preparedStatement.setString(3, cartname);
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -46,14 +50,14 @@ public class CartDAO {
     public Cart createCart(Cart cart) {
         PreparedStatement preparedStatement;
         try {
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             preparedStatement = connection.prepareStatement("insert into cart values (?, ?, ?)");
             preparedStatement.setObject(1, cart.getCartId());
             preparedStatement.setObject(2, cart.getPersonId());
             preparedStatement.setString(3, cart.getCartname());
             preparedStatement.executeUpdate();
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Insert success");
         } catch (Exception e) {
             System.out.println(e);
@@ -68,11 +72,11 @@ public class CartDAO {
         ResultSet rs = null;
         try {
             String query = "select * from cart";
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(query);
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 Cart cart = new Cart();
                 cart.setCartId(rs.getObject("cart_id", UUID.class));
@@ -95,11 +99,11 @@ public class CartDAO {
             sb.append("select * from cart where ");
             sb.append(toSQLStringStatement(findCartRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 cart.setCartId(rs.getObject("cart_id", UUID.class));
                 cart.setPersonId(rs.getObject("person_id", UUID.class));
@@ -133,11 +137,11 @@ public class CartDAO {
             sb.delete(sb.length() - 4, sb.length());
             sb.append(";");
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             rs = statement.executeQuery(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             while (rs.next()) {
                 cart.setCartId(rs.getObject("cart_id", UUID.class));
                 cart.setPersonId(rs.getObject("person_id", UUID.class));
@@ -172,11 +176,11 @@ public class CartDAO {
             sb.append("where ");
             sb.append(toSQLStringStatement(findCartRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connection = connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data updated");
         } catch (Exception e) {
             System.out.println(e);
@@ -199,11 +203,11 @@ public class CartDAO {
 
             sb.append(toSQLStringStatement(findCartRequest));
             System.out.println(sb.toString());
-            connection = ConnectionPool.getInstance().getConnection();
+            connectionPool.getConnection();
             System.out.println("Used connection: " + connection);
             statement = connection.createStatement();
             statement.executeUpdate(sb.toString());
-            ConnectionPool.getInstance().releaseConnection(connection);
+            connectionPool.releaseConnection(connection);
             System.out.println("Data deleted");
         } catch (Exception e) {
             System.out.println(e);
